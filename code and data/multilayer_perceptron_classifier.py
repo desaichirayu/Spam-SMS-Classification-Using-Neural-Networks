@@ -1,3 +1,6 @@
+# Multilayer Percpetron Classifier to find SPAM messages
+__author__ = "Chirayu Desai"
+
 import csv
 import operator
 import warnings
@@ -7,7 +10,6 @@ from sklearn.model_selection import KFold
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import classification_report
 from sklearn.feature_extraction.text import TfidfVectorizer
-
 
 warnings.filterwarnings('ignore')
 # read data from csv
@@ -40,7 +42,7 @@ def parse_classification_report(clfreport):
     avg_line = lines[-1]
 
     assert header.split() == ['precision', 'recall', 'f1-score', 'support']
-    assert avg_line.split()[0] == 'avg'
+    assert avg_line.split()[1] == 'avg'
 
     # We cannot simply use split because class names can have spaces. So instead
     # figure the width of the class field by looking at the indentation of the
