@@ -18,7 +18,7 @@ df = pd.read_csv('labelled_input.csv', names=['sms', 'class'], encoding='ansi')
 x = df['sms']
 y = df['class']
 
-# 10 fold cross validatio
+# 10 fold cross validation
 kf = KFold(n_splits=10)
 
 # available activation function types
@@ -26,13 +26,13 @@ activation_types = ['identity', 'logistic', 'tanh', 'relu']
 performance = dict()
 
 
-def parse_classification_report(clfreport):
+def parse_classification_report(clf_report):
     """
     Source StackOverflow
     Parse a sklearn classification report into a dict keyed by class name
     and containing a tuple (precision, recall, fscore, support) for each class
     """
-    lines = clfreport.split('\n')
+    lines = clf_report.split('\n')
     # Remove empty lines
     lines = list(filter(lambda l: not len(l.strip()) == 0, lines))
 
@@ -53,20 +53,21 @@ def parse_classification_report(clfreport):
 
     def parse_line(l):
         """Parse a line of classification_report"""
-        cls_name = l[:cls_field_width].strip()
-        precision, recall, fscore, support = l[cls_field_width:].split()
+        class_name = l[:cls_field_width].strip()
+        precision, recall, f_score, support = l[cls_field_width:].split()
         precision = float(precision)
         recall = float(recall)
-        fscore = float(fscore)
+        f_score = float(f_score)
         support = int(support)
-        return (cls_name, precision, recall, fscore, support)
+        return class_name, precision, recall, f_score, support
 
     data = collections.OrderedDict()
-    for l in cls_lines:
-        ret = parse_line(l)
-        cls_name = ret[0]
-        scores = ret[1:]
-        data[cls_name] = scores
+    for line in cls_lines:
+        if 'accuracy' not in line:
+            ret = parse_line(line)
+            cls_name = ret[0]
+            scores = ret[1:]
+            data[cls_name] = scores
 
     # average
     data['avg'] = parse_line(avg_line)[1:]
@@ -94,9 +95,9 @@ def run_classifier(activation_type, test_flag):
     for train_indices, test_indices in kf.split(x, y):
         x_train, x_test, y_train, y_test = x[train_indices], x[test_indices], y[train_indices], y[test_indices]
         train_x_vector = vectorizer.fit_transform(x_train)
-        test_X_vector = vectorizer.transform(x_test)
+        test_x_vector = vectorizer.transform(x_test)
         classifier.fit(train_x_vector, y_train)
-        guess = classifier.predict(test_X_vector)
+        guess = classifier.predict(test_x_vector)
         rep = classification_report(y_test, guess)
         a, b, c, d = dict(parse_classification_report(rep))['avg']
         precision_dict[ind] = a
@@ -110,8 +111,8 @@ def run_classifier(activation_type, test_flag):
         td = pd.read_csv('test_sms.csv', names=['sms'], encoding='ansi')
         # print(td)
         op_x = td['sms']
-        OP_X_vector = vectorizer.transform(op_x)
-        prediction = classifier.predict(OP_X_vector)
+        op_x_vector = vectorizer.transform(op_x)
+        prediction = classifier.predict(op_x_vector)
         # for i in range(0, len(prediction)):
         #     print(op_x[i] + " -> " + prediction[i])
 
